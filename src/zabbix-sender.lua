@@ -122,7 +122,7 @@ function ZabbixSender:send()
     return false, err
   end
 
-  local resp, err = _receive_response(conn)
+  local resp, err = _receive_response(conn) -- luacheck: ignore 411/err
   conn:close()
 
   if not resp then
