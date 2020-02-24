@@ -1,3 +1,4 @@
+require('compat53')
 local socket = require('socket')
 local json = require('dkjson')
 
