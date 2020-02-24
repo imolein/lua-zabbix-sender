@@ -14,26 +14,34 @@ local ZHEAD = 'ZBXD\x01'
 
 --- Privat helper functions
 
--- returns nanoseconds / I dunno how precise this is
+-- returns epoch and nanoseconds (I dunno how precise this is)
 local function _get_time()
   local time = socket.gettime()
 
   return math.floor(time), math.floor(( time % 1 ) * 1000 * 1000000 )
 end
 
+-- set timestamp and nanoseconds if wanted
+local function _set_ts_and_ns(self, data)
+  if self.timestamps then
+    local ts, ns = _get_time()
+    data.clock = ts
+
+    if self.nanoseconds then
+      data.ns = ns
+    end
+  end
+end
+
 -- creates the payload as described in the docs
 -- https://www.zabbix.com/documentation/4.0/manual/appendix/protocols/header_datalen
-local function _build_payload(items, with_ns)
-  local time, ns = _get_time()
+local function _build_payload(self)
   local data = {
     request = 'sender data',
-    data = items,
-    clock = time
+    data = self.items
   }
 
-  if with_ns then
-    data.ns = ns
-  end
+  _set_ts_and_ns(self, data)
 
   local jdata = json.encode(data)
 
@@ -85,17 +93,13 @@ function ZabbixSender:add_item(key, value, mhost)
   mhost = mhost or self.monitored_host
   assert(mhost, 'No monitored host was given and no fallback was set')
 
-  local time, ns = _get_time()
   local item = {
     key = key,
     value = value,
-    host = mhost,
-    clock = time
+    host = mhost
   }
 
-  if self.with_ns then
-    item.ns = ns
-  end
+  _set_ts_and_ns(self, item)
 
   table.insert(self.items, item)
 
@@ -112,11 +116,17 @@ function ZabbixSender:has_unsent_items()
 end
 
 function ZabbixSender:send()
-  local data = _build_payload(self.items, self.with_ns)
-  local conn = assert(socket.connect(self.host, self.port))
-  conn:settimeout(2)
+  local data = _build_payload(self)
+  local conn = socket.tcp()
+  conn:settimeout(self.timeout)
 
-  local ok, err = conn:send(data)
+  local ok, err = socket:connect(self.server, self.port)
+  if not ok then
+    conn:close()
+    return false, err
+  end
+
+  local ok, err = conn:send(data) -- luacheck: ignore 411/ok err
   if not ok then
     conn:close()
     return false, err
@@ -139,10 +149,12 @@ end
 function zabbix_sender.new(opts)
   opts = opts or {}
   local self = {
-    host = opts.host or 'localhost',
+    server = opts.server or 'localhost',
     port = tonumber(opts.port) or 10051,
     monitored_host = opts.monitored_host,
-    with_ns = opts.with_ns or false,
+    timestamps = opts.timestamps or opts.nanoseconds or false,
+    nanoseconds = opts.nanoseconds or false,
+    timeout = opts.timeout or 0.5,
     items = {}
   }
 

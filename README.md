@@ -11,7 +11,7 @@ I am not a programmer, so here’s a warning: **This code was written in an expl
 ```lua
 local zbx_sender = require('zabbix-sender')
 local sender = zbx_sender({
-    host = 'localhost',
+    server = 'localhost',
     port = 10051,
     monitored_host = 'node01'
   })
@@ -56,10 +56,12 @@ Creates a new zabbix sender.
 **Parameter:**
 
 * *opts*: (**table**) options (**opt**)
-* *opts.host*: (**string**) Zabbix server URL/IP (**default**=`localhost`)
+* *opts.server*: (**string**) Zabbix server URL/IP (**default**=`localhost`)
 * *opts.port*: (**number**) Zabbix server port (**default**=`10051`)
 * *opts.monitored_host*: (**string**) The hostname the items belongs to. (**default**=`nil`)
-* *opts.with_ns*: (**boolean**) Whether or not add a nanoseconds to items (**default**=`false`)
+* *opts.timestamps*: (**boolean**) Whether or not add timestamps to items - if `opts.nanoseconds` is set to `true` `opts.timestamps` is set to `true` too (**default**=`false`)
+* *opts.nanoseconds*: (**boolean**) Whether or not add nanoseconds to items (**default**=`false`)
+* *opts.timeout*: (**number**) connection timeout (**default**=`0.5`)
 
 **Returns:**
 
@@ -109,4 +111,5 @@ Sends all added items.
 
 **Returns:**
 
-(**table**) response from server
+1. (**table** | **false**) response from server | `false` in case of error
+2. (**string**) error message in case of error
