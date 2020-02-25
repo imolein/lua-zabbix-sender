@@ -1,0 +1,16 @@
+Source: lua-zabbix-sender
+Section: interpreters
+Priority: optional
+Maintainer: Sebastian Huebner <sh@kokolor.es>
+Build-Depends: debhelper (>= 9), dh-lua (>= 23)
+Standards-Version: 3.9.3
+Homepage: https://codeberg.org/imo/lua-zabbix-sender
+
+Package: lua-zabbix-sender
+Architecture: all
+Depends: ${misc:Depends}, lua-socket, lua-dkjson, lua-compat53
+Provides: ${lua:Provides}
+XB-Lua-Versions: ${lua:Versions}
+Description: A zabbix sender protocol implementation in Lua
+ A zabbix sender protocol implementation in Lua, for pushing
+ data to Zabbix trapper items directly from your Lua code.

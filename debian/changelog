@@ -1,0 +1,5 @@
+lua-zabbix-sender (0.2.0-0) UNRELEASED; urgency=low
+
+  * Initial package release
+
+ -- Sebastian Huebner <sh@kokolor.es>  Tue, 25 Feb 2020 17:58:13 +0100
