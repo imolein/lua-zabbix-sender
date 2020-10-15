@@ -120,7 +120,7 @@ function ZabbixSender:send()
   local conn = socket.tcp()
   conn:settimeout(self.timeout)
 
-  local ok, err = socket:connect(self.server, self.port)
+  local ok, err = conn:connect(self.server, self.port)
   if not ok then
     conn:close()
     return false, err
