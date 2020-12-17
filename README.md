@@ -10,7 +10,7 @@ I am not a programmer, so here’s a warning: **This code was written in an expl
 
 ```lua
 local zbx_sender = require('zabbix-sender')
-local sender = zbx_sender({
+local sender = zbx_sender.new({
     server = 'localhost',
     port = 10051,
     monitored_host = 'node01'
@@ -37,6 +37,7 @@ print(inspect(resp))
    * [new](#newopts)
 * [Methods](#methods)
    * [add_item](#add_itemkey-value-mhost)
+   * [add_items](#add_itemsitems)
    * [clear](#clear)
    * [has_unsent_items](#has-unsent-items)
    * [send](#send)
@@ -87,6 +88,30 @@ Adds an item to the request payload. The item(s) are stored until `send()` is in
 
 1. Error if `key` or `value` is missing
 2. Error if `host` is missing and `monitored_host` was not set
+
+### `add_items(items)`
+
+Adds multiple items from a given table. The `items` table is an array of tables in the format of:
+
+```lua
+{
+  { 'key1', 'val1', 'host1' },
+  { 'key2', 'val2', 'host2' },
+  ...
+}
+```
+
+**Parameter:**
+
+* *key*: (**table**) 
+
+**Returns:**
+
+(**table**) self
+
+**Raises:**
+
+1. Error if `items` is not given or not a `table`
 
 ### `clear()`
 
