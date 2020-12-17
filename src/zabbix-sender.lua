@@ -106,6 +106,16 @@ function ZabbixSender:add_item(key, value, mhost)
   return self
 end
 
+function ZabbixSender:add_items(items)
+  assert(items and type(items) == 'table', 'Needs at least one argument - a table')
+
+  for _, tbl in ipairs(items) do
+    self:add_item(tbl[1], tbl[2], tbl[3])
+  end
+
+  return self
+end
+
 function ZabbixSender:clear()
   self.items = {}
 end
