@@ -73,22 +73,24 @@ local function _parse_response_data(resp)
     return resp_info
 end
 
--- receives the response from the server
-local function _receive_response(conn)
-    -- TODO: maybe just use *a, because according to the docs the server
+local function receive_response(client)
+    -- Note: maybe just use *a, because according to the docs the server
     -- closes the connection after it sent the status back
-    local resp_head, err = conn:receive(13)
+    local resp_head, err = client:receive(13)
 
     if not resp_head then
+        client:close()
         return false, err
-    elseif not resp_head:find('^' .. ZHEAD) or resp_head:len() ~= 13 then
+    elseif not resp_head:find('^' .. ZHEAD_START) or resp_head:len() ~= 13 then
+        client:close()
         return false, 'Got invalid response from server'
     end
 
     local resp_data_len = string.unpack('<L', resp_head:sub(6))
-    local resp_data = conn:receive(resp_data_len)
+    local resp_data = client:receive(resp_data_len)
 
-    return _parse_response_data(resp_data)
+    client:close()
+    return parse_response_data(resp_data)
 end
 
 
