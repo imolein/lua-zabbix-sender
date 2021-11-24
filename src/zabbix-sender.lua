@@ -18,9 +18,9 @@ local zabbix_sender = {
 }
 
 -- protocol + flag
-local ZHEAD = 'ZBXD\x01'
+local ZHEAD_START = 'ZBXD\x01'
 
---- Privat helper functions
+--- Privat functions
 
 -- returns epoch and nanoseconds (I dunno how precise this is)
 local function _get_time()
@@ -30,7 +30,7 @@ local function _get_time()
 end
 
 -- set timestamp and nanoseconds if wanted
-local function _set_ts_and_ns(self, data)
+local function set_ts_and_ns(self, data)
     if self.timestamps then
         local ts, ns = _get_time()
         data.clock = ts
@@ -42,23 +42,22 @@ local function _set_ts_and_ns(self, data)
 end
 
 -- creates the payload as described in the docs
--- https://www.zabbix.com/documentation/4.0/manual/appendix/protocols/header_datalen
-local function _build_payload(self)
+-- https://www.zabbix.com/documentation/5.0/manual/appendix/protocols/header_datalen
+local function build_payload(self)
     local data = {
         request = 'sender data',
-        data = self.items
+        data = self._items
     }
-
-    _set_ts_and_ns(self, data)
+    set_ts_and_ns(self, data)
+    self:clear()
 
     local jdata = json.encode(data)
-
-    return ZHEAD .. string.pack('<L', jdata:len()) .. jdata
+    return string.format('%s%s%s', ZHEAD_START, string.pack('<L', jdata:len()), jdata)
 end
 
 -- parses the JSON response and returns only the data from then
 -- info string
-local function _parse_response_data(resp)
+local function parse_response_data(resp)
     local resp_info = {}
 
     local ok, data = pcall(json.decode, resp)
@@ -109,9 +108,9 @@ function ZabbixSender:add_item(key, value, mhost)
         host = mhost
     }
 
-    _set_ts_and_ns(self, item)
+    set_ts_and_ns(self, item)
 
-    table.insert(self.items, item)
+    table.insert(self._items, item)
 
     return self
 end
