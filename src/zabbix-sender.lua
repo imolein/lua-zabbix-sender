@@ -131,8 +131,7 @@ function ZabbixSender:clear()
 end
 
 function ZabbixSender:has_unsent_items()
-    local count = #self.items
-    return count ~= 0, count
+    return #self._items ~= 0
 end
 
 function ZabbixSender:_connect()
