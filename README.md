@@ -97,7 +97,7 @@ Creates a new zabbix sender.
 * *opts.timestamps*: (**boolean**) Whether or not add timestamps to items - if `opts.nanoseconds` is set to `true` `opts.timestamps` is set to `true` too (**default**=`false`)
 * *opts.nanoseconds*: (**boolean**) Whether or not add nanoseconds to items (**default**=`false`)
 * *opts.timeout*: (**number**) connection timeout (**default**=`0.5`)
-* *opts.socket*: (**function**) a function which returns a [LuaSocket TCP master object](https://w3.impa.br/~diego/software/luasocket/tcp.html). For example this can be used to wrap the socket with **copas**. (**default**=`socket.tcp`)
+* *opts.socket*: (**function**) a function which returns a [LuaSocket TCP master object](https://w3.impa.br/~diego/software/luasocket/tcp.html). For example this can be used to wrap the socket with **copas** (See the example above). (**default**=`socket.tcp`)
 
 **Returns:**
 
@@ -158,7 +158,7 @@ Removes all unsent items.
 
 ### `has_unsent_items()`
 
-Returns if there are unsent items and the number of unset items.
+Checks if there are currently unsent items.
 
 **Returns:**
 
@@ -170,5 +170,5 @@ Sends all added items.
 
 **Returns:**
 
-1. (**table** | **false**) response from server | `false` in case of error
+1. (**table** | **boolean**) response from server | `false` in case of error
 2. (**string**) error message in case of error
