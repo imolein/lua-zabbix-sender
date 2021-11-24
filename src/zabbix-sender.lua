@@ -125,7 +125,9 @@ function ZabbixSender:add_items(items)
 end
 
 function ZabbixSender:clear()
-    self.items = {}
+    self._items = {}
+
+    return self
 end
 
 function ZabbixSender:has_unsent_items()
