@@ -1,6 +1,14 @@
-require('compat53')
 local socket = require('socket')
-local json = require('dkjson')
+local json do
+    for _, mod in ipairs({'cjson', 'lunajson', 'dkjson'}) do
+        local ok, j = pcall(require, mod)
+        if ok then
+            json = j
+        end
+    end
+
+    assert(json, "Couldn't load any of the following JSON modules: cjson, lunajson, dkjson")
+end
 
 local zabbix_sender = {
     _VERSION      = '0.1.0-0',
