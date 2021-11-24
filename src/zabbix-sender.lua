@@ -135,31 +135,41 @@ function ZabbixSender:has_unsent_items()
     return count ~= 0, count
 end
 
+function ZabbixSender:_connect()
+    local client = self._socket()
+    client:settimeout(self.timeout)
+
+    local ok, err = client:connect(self.server, self.port)
+    if not ok then
+        client:close()
+        return false, err
+    end
+
+    return client
+end
+
 function ZabbixSender:send()
-    local data = _build_payload(self)
-    local conn = socket.tcp()
-    conn:settimeout(self.timeout)
+    local items = self._items
+    local data = build_payload(self)
 
-    local ok, err = conn:connect(self.server, self.port)
+    local client, err = self:_connect()
+    if not client then
+        self._items = items
+        return client, err
+    end
+
+    local ok, err = client:send(data) -- luacheck: ignore 411/ok err
     if not ok then
-        conn:close()
+        client:close()
+        self._items = items
         return false, err
     end
 
-    local ok, err = conn:send(data) -- luacheck: ignore 411/ok err
-    if not ok then
-        conn:close()
-        return false, err
-    end
-
-    local resp, err = _receive_response(conn) -- luacheck: ignore 411/err
-    conn:close()
-
+    local resp, err = receive_response(client) -- luacheck: ignore 411/err
     if not resp then
-        return false, err
+        return resp, err
     end
 
-    self:clear()
     return resp
 end
 
@@ -175,7 +185,8 @@ function zabbix_sender.new(opts)
         timestamps = opts.timestamps or opts.nanoseconds or false,
         nanoseconds = opts.nanoseconds or false,
         timeout = opts.timeout or 0.5,
-        items = {}
+        _socket = opts.socket or socket.tcp,
+        _items = {}
     }
 
     return setmetatable(self, { __index = ZabbixSender })
