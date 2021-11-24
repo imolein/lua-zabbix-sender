@@ -23,16 +23,16 @@ local ZHEAD_START = 'ZBXD\x01'
 --- Privat functions
 
 -- returns epoch and nanoseconds (I dunno how precise this is)
-local function _get_time()
+local function get_time()
     local time = socket.gettime()
 
-    return math.floor(time), math.floor(( time % 1 ) * 1000 * 1000000 )
+    return math.floor(time), math.floor(( time % 1 ) * 10^9 )
 end
 
 -- set timestamp and nanoseconds if wanted
 local function set_ts_and_ns(self, data)
     if self.timestamps then
-        local ts, ns = _get_time()
+        local ts, ns = get_time()
         data.clock = ts
 
         if self.nanoseconds then
