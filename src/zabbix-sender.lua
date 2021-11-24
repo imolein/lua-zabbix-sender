@@ -11,7 +11,7 @@ local json do
 end
 
 local zabbix_sender = {
-    _VERSION      = '0.1.0-0',
+    _VERSION      = '1.0.0-0',
     _DESCRIPTION  = 'A zabbix sender protocol implementation in Lua.',
     _URL          = 'https://git.kokolor.es/imo/lua-zabbix-sender',
     _LICENCE      = 'MIT'
