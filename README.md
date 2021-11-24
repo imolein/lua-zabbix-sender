@@ -9,6 +9,7 @@ I am not a programmer, so here’s a warning: **This code was written in an expl
 ## Example
 
 ```lua
+local inspect = require('inspect')
 local zbx_sender = require('zabbix-sender')
 local sender = zbx_sender.new({
     server = 'localhost',
@@ -16,7 +17,7 @@ local sender = zbx_sender.new({
     monitored_host = 'node01'
   })
 
-local resp = send:add_item('trap1', 'test1')
+local resp = sender:add_item('trap1', 'test1')
   :add_item('trap2', 'test2')
   :add_item('trap1', 'test1', 'node02')
   :send()
@@ -28,6 +29,37 @@ print(inspect(resp))
   processed = 3,
   total = 3
 }
+```
+
+```lua
+local socket = require('socket')
+local copas = require('copas')
+local zbx_sender = require('zabbix-sender')
+
+local sender = zbx_sender.new({
+    server = 'localhost',
+    port = 10051,
+    monitored_host = 'node01',
+    socket = function() return copas.wrap(socket.tcp()) end
+  })
+
+copas.addthread(function()
+  sender:add_item('trap1', 'test1')
+    :add_item('trap2', 'test2')
+
+  copas.sleep(1)
+
+  sender:add_item('trap1', 'test1', 'node02')
+end)
+
+copas.addthread(function()
+  while sender:has_unsent_items() do
+    sender:send()
+    copas.sleep(2)
+  end
+end)
+
+copas.loop()
 ```
 
 ## Documentation
@@ -44,9 +76,11 @@ print(inspect(resp))
 
 ## Dependencies
 
-* lua >=5.3
+* lua >=5.1
 * [luasocket](https://github.com/diegonehab/luasocket)
-* [dkjson](http://dkolf.de/src/dkjson-lua.fsl/home)
+* [cjson](https://github.com/openresty/lua-cjson), [lunajson](https://github.com/grafi-tt/lunajson) or [dkjson](http://dkolf.de/src/dkjson-lua.fsl/home)
+* [copas](https://github.com/keplerproject/copas) >=3.0.0 (**optional**)
+
 
 ## Functions
 
@@ -63,6 +97,7 @@ Creates a new zabbix sender.
 * *opts.timestamps*: (**boolean**) Whether or not add timestamps to items - if `opts.nanoseconds` is set to `true` `opts.timestamps` is set to `true` too (**default**=`false`)
 * *opts.nanoseconds*: (**boolean**) Whether or not add nanoseconds to items (**default**=`false`)
 * *opts.timeout*: (**number**) connection timeout (**default**=`0.5`)
+* *opts.socket*: (**function**) a function which returns a [LuaSocket TCP master object](https://w3.impa.br/~diego/software/luasocket/tcp.html). For example this can be used to wrap the socket with **copas**. (**default**=`socket.tcp`)
 
 **Returns:**
 
@@ -103,7 +138,7 @@ Adds multiple items from a given table. The `items` table is an array of tables 
 
 **Parameter:**
 
-* *key*: (**table**) 
+* *items*: (**table**) 
 
 **Returns:**
 
@@ -119,7 +154,7 @@ Removes all unsent items.
 
 **Returns:**
 
-(**nil**)
+(**self**)
 
 ### `has_unsent_items()`
 
@@ -128,7 +163,6 @@ Returns if there are unsent items and the number of unset items.
 **Returns:**
 
 1. (**boolean**)
-2. (**number**)
 
 ### `send()`
 
